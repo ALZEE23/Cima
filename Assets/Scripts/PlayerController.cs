@@ -1,10 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting.Dependencies.NCalc;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
-using UnityEngine.Sprites;
 
 public class PlayerController : MonoBehaviour
 {
@@ -14,7 +10,7 @@ public class PlayerController : MonoBehaviour
     private float speed = 4f;
     private float jumpingPower = 10f;
     private bool isFacingRight = true;
-    
+
     private Collider2D platformCollider;
     public Animator anim;
 
@@ -41,33 +37,48 @@ public class PlayerController : MonoBehaviour
 
     public bool jumpIn;
 
-    void Start(){
-        anim.SetBool("in",true);
+    
+    private AudioSource audioSource;
+    public AudioClip footstepClip;
+
+    void Start()
+    {
+        anim.SetBool("in", true);
         StartCoroutine(StartGame(1.0f));
+
+       
+        audioSource = GetComponent<AudioSource>();
     }
+
     void Update()
     {
-        if(maxHeart == 3){
+        if (maxHeart == 3)
+        {
             heart1.SetActive(true);
             heart2.SetActive(true);
             heart3.SetActive(true);
-        } else if(maxHeart == 2){
+        }
+        else if (maxHeart == 2)
+        {
             heart1.SetActive(false);
             heart2.SetActive(true);
             heart3.SetActive(true);
-        } else if(maxHeart == 1){
+        }
+        else if (maxHeart == 1)
+        {
             heart1.SetActive(false);
             heart2.SetActive(false);
             heart3.SetActive(true);
-        } else {
-            anim.SetBool("dead",true);
+        }
+        else
+        {
+            anim.SetBool("dead", true);
             StartCoroutine(StopDead(0.5f));
             GameOver.SetActive(true);
             Ui.SetActive(false);
             sprites.sprite = sprite;
         }
 
-        
         horizontal = Input.GetAxis("Horizontal");
         if (isMovingLeft)
         {
@@ -77,29 +88,37 @@ public class PlayerController : MonoBehaviour
         {
             horizontal = 1f;
         }
-        if (horizontal>0.4f && IsGrounded() || horizontal<-0.4f && IsGrounded()){
+
+        if (horizontal > 0.4f && IsGrounded() || horizontal < -0.4f && IsGrounded())
+        {
             anim.SetBool("run", true);
-        } else {
-            anim.SetBool("run",false);
+            PlayFootstepSound();
+        }
+        else
+        {
+            anim.SetBool("run", false);
+            StopFootstepSound();
         }
 
-        if(!IsGrounded()){
-            anim.SetBool("jump",true);
-        } else {
+        if (!IsGrounded())
+        {
+            anim.SetBool("jump", true);
+        }
+        else
+        {
             anim.SetBool("jump", false);
         }
 
-
-        if (Input.GetButtonDown("Jump") && IsGrounded() )
+        if (Input.GetButtonDown("Jump") && IsGrounded())
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
-            
         }
 
-        if (Input.GetButtonUp("Jump") && rb.velocity.y > 0f )
+        if (Input.GetButtonUp("Jump") && rb.velocity.y > 0f)
         {
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
         }
+
         JumpUp();
         JumpDown();
         Flip();
@@ -107,17 +126,20 @@ public class PlayerController : MonoBehaviour
         AttackAnimation();
     }
 
-    public void JumpDown(){
+    public void JumpDown()
+    {
         jumpFloat = 1f;
     }
 
-    public void JumpUp(){
+    public void JumpUp()
+    {
         jumpFloat = -1f;
     }
 
-    IEnumerator StopDead(float delay){
+    IEnumerator StopDead(float delay)
+    {
         yield return new WaitForSeconds(delay);
-        anim.SetBool("dead",false);
+        anim.SetBool("dead", false);
     }
 
     private void FixedUpdate()
@@ -141,80 +163,110 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void Hit(){
+    public void Hit()
+    {
         var hitDown = Input.GetKeyDown(KeyCode.C);
         var hitUp = Input.GetKeyUp(KeyCode.C);
 
-        if(hitDown && !hitUp || HitCuy){
+        if (hitDown && !hitUp || HitCuy)
+        {
             hit = true;
-            
-        } else if(!hitDown && hitUp || !HitCuy){
+        }
+        else if (!hitDown && hitUp || !HitCuy)
+        {
             hit = false;
-            
-        } else if (hitDown && hitUp){
+        }
+        else if (hitDown && hitUp)
+        {
             hit = false;
-        }else if (!hitDown && !hitUp){
-            hit = false;
-        } else {
+        }
+        else if (!hitDown && !hitUp)
+        {
             hit = false;
         }
     }
 
-    public void AttackAnimation(){
-        if(hit == true){
-            anim.SetBool("attack",true);
-            
-        } else {
-            anim.SetBool("attack",false);
+    public void AttackAnimation()
+    {
+        if (hit == true)
+        {
+            anim.SetBool("attack", true);
+        }
+        else
+        {
+            anim.SetBool("attack", false);
         }
     }
 
-    IEnumerator StartGame(float delay){
+    IEnumerator StartGame(float delay)
+    {
         yield return new WaitForSeconds(delay);
         anim.SetBool("in", false);
     }
-    
+
     IEnumerator StopHit(float delay)
     {
         yield return new WaitForSeconds(delay);
         anim.SetBool("hit", false);
     }
 
-    void OnCollisionEnter2D(Collision2D coll){
-        if(coll.collider.CompareTag("Enemy")){
-            anim.SetBool("hit",true);
+    void OnCollisionEnter2D(Collision2D coll)
+    {
+        if (coll.collider.CompareTag("Enemy"))
+        {
+            anim.SetBool("hit", true);
             maxHeart -= 1;
             StartCoroutine(StopHit(0.3f));
         }
     }
 
-    public void LeftUp(){
+    public void LeftUp()
+    {
         isMovingLeft = false;
-
     }
 
-    public void LeftDown(){
+    public void LeftDown()
+    {
         isMovingLeft = true;
-
     }
 
-    public void RightUp(){
+    public void RightUp()
+    {
         isMovingRight = false;
     }
 
-    public void RightDown(){
+    public void RightDown()
+    {
         isMovingRight = true;
     }
 
-    public void HitDown(){
+    public void HitDown()
+    {
         HitCuy = true;
         StartCoroutine(Stop(0.00001f));
-
     }
 
-    IEnumerator Stop(float delay){
+    IEnumerator Stop(float delay)
+    {
         yield return new WaitForSeconds(delay);
         HitCuy = false;
     }
-    
+
+    void PlayFootstepSound()
+    {
+        if (!audioSource.isPlaying)
+        {
+            audioSource.clip = footstepClip;
+            audioSource.loop = true;
+            audioSource.Play();
+        }
+    }
+
+    void StopFootstepSound()
+    {
+        if (audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+    }
 }
