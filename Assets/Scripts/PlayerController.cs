@@ -37,7 +37,7 @@ public class PlayerController : MonoBehaviour
 
     public bool jumpIn;
 
-    
+    public bool isJumping;
     private AudioSource audioSource;
     public AudioClip footstepClip;
 
@@ -46,7 +46,7 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("in", true);
         StartCoroutine(StartGame(1.0f));
 
-       
+
         audioSource = GetComponent<AudioSource>();
     }
 
@@ -118,23 +118,42 @@ public class PlayerController : MonoBehaviour
         {
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
         }
+        if (isJumping && IsGrounded())
+        {
+            Jump();
+        }
 
-        JumpUp();
-        JumpDown();
+
         Flip();
         Hit();
         AttackAnimation();
     }
 
-    public void JumpDown()
+    public void Jump()
     {
-        jumpFloat = 1f;
+        rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
     }
 
-    public void JumpUp()
+    public void StopJump()
     {
-        jumpFloat = -1f;
+        rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
     }
+
+    public void OnJumpButtonDown()
+    {
+        isJumping = true;
+    }
+
+    public void OnJumpButtonUp()
+    {
+        isJumping = false;
+        if (rb.velocity.y > 0f)
+        {
+            StopJump();
+        }
+    }
+
+
 
     IEnumerator StopDead(float delay)
     {
